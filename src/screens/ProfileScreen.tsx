@@ -12,6 +12,7 @@ import {
   ChevronRight,
   PlusCircle,
   Briefcase,
+  Settings,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -24,6 +25,9 @@ export const ProfileScreen: React.FC = () => {
     setIsWishlistOpen,
     setIsAddProductOpen,
     setIsArtisanStudioOpen,
+    setIsSettingsOpen,
+    setIsHelpOpen,
+    setIsAboutOpen,
     orders,
     wishlist,
     showToast,
@@ -132,6 +136,18 @@ export const ProfileScreen: React.FC = () => {
 
         <button
           type="button"
+          onClick={() => setIsSettingsOpen(true)}
+          className="w-full p-3.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Settings className="w-4 h-4 text-[#0B8F56]" />
+            <span className="text-xs font-bold text-[#1E2723]">Settings & Preferences</span>
+          </div>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+        </button>
+
+        <button
+          type="button"
           onClick={() => showToast('Saved address: 123 Anna Nagar, Chennai')}
           className="w-full p-3.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
         >
@@ -168,7 +184,7 @@ export const ProfileScreen: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => showToast('Customer support: support@artisanconnect.org')}
+          onClick={() => setIsHelpOpen(true)}
           className="w-full p-3.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
@@ -180,7 +196,7 @@ export const ProfileScreen: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => showToast('Artisan Connect v1.0.0 – Empowering Indian craftspeople')}
+          onClick={() => setIsAboutOpen(true)}
           className="w-full p-3.5 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">

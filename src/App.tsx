@@ -22,6 +22,9 @@ import { WishlistModal } from './screens/WishlistModal';
 import { RecommendationsModal } from './screens/RecommendationsModal';
 import { AddProductScreen } from './screens/AddProductScreen';
 import { ArtisanStudioScreen } from './screens/ArtisanStudioScreen';
+import { SettingsModal } from './screens/SettingsModal';
+import { HelpSupportModal } from './screens/HelpSupportModal';
+import { AboutUsModal } from './screens/AboutUsModal';
 
 const MainShell: React.FC = () => {
   const { activeTab, isLoggedIn } = useApp();
@@ -61,8 +64,11 @@ const MainShell: React.FC = () => {
       <FilterModal />
       <WishlistModal />
       <RecommendationsModal />
-      <AddProductScreen />
       <ArtisanStudioScreen />
+      <AddProductScreen />
+      <SettingsModal />
+      <HelpSupportModal />
+      <AboutUsModal />
       <Toast />
     </div>
   );

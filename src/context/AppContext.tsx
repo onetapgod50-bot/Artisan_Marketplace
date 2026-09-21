@@ -76,6 +76,13 @@ interface AppContextType {
   setIsAddProductOpen: (open: boolean) => void;
   isArtisanStudioOpen: boolean;
   setIsArtisanStudioOpen: (open: boolean) => void;
+  isSettingsOpen: boolean;
+  setIsSettingsOpen: (open: boolean) => void;
+  isHelpOpen: boolean;
+  setIsHelpOpen: (open: boolean) => void;
+  isAboutOpen: boolean;
+  setIsAboutOpen: (open: boolean) => void;
+  resetCatalog: () => void;
   editingProduct: Product | null;
   setEditingProduct: (product: Product | null) => void;
 
@@ -87,11 +94,22 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Load initial states with localStorage caching if available
+  // Load initial states with localStorage caching and upgrade check
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('ac_products');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: Product[] = JSON.parse(saved);
+        // Check if catalog has old repeated images with &index=, missing realistic images, or incomplete categories
+        const hasOldFormat = parsed.length < 200 || parsed.some((p) => p.imageUrl && p.imageUrl.includes('index='));
+        if (hasOldFormat) {
+          // Keep user-created custom items and refresh default catalog
+          const userItems = parsed.filter((p) => p.isUserCreated || p.id > 10000);
+          const fresh = buildProducts();
+          return [...userItems, ...fresh];
+        }
+        return parsed;
+      }
     } catch {}
     return buildProducts();
   });
@@ -129,6 +147,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isRecommendationsOpen, setIsRecommendationsOpen] = useState<boolean>(false);
   const [isAddProductOpen, setIsAddProductOpen] = useState<boolean>(false);
   const [isArtisanStudioOpen, setIsArtisanStudioOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+  const [isAboutOpen, setIsAboutOpen] = useState<boolean>(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -220,8 +241,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const addProduct = (newProd: Product) => {
-    setProducts((prev) => [newProd, ...prev]);
-    showToast('Product published to catalog successfully!');
+    const item: Product = { ...newProd, isUserCreated: true };
+    setProducts((prev) => [item, ...prev]);
+    showToast(`"${newProd.name}" published to catalog successfully!`);
+  };
+
+  const resetCatalog = () => {
+    try {
+      localStorage.removeItem('ac_products');
+    } catch {}
+    const fresh = buildProducts();
+    setProducts(fresh);
+    showToast('Catalog refreshed with 200 authentic craft listings');
   };
 
   const updateProduct = (updated: Product) => {
@@ -475,6 +506,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setIsAddProductOpen,
         isArtisanStudioOpen,
         setIsArtisanStudioOpen,
+        isSettingsOpen,
+        setIsSettingsOpen,
+        isHelpOpen,
+        setIsHelpOpen,
+        isAboutOpen,
+        setIsAboutOpen,
+        resetCatalog,
         editingProduct,
         setEditingProduct,
         toastMessage,

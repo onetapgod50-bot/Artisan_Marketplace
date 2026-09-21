@@ -13,6 +13,7 @@ import {
   Sparkles,
   PlusCircle,
   UserCheck,
+  ChevronRight,
   X,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -26,6 +27,9 @@ export const Drawer: React.FC = () => {
     setIsRecommendationsOpen,
     setIsAddProductOpen,
     setIsArtisanStudioOpen,
+    setIsSettingsOpen,
+    setIsHelpOpen,
+    setIsAboutOpen,
     user,
     switchRole,
     logout,
@@ -170,29 +174,37 @@ export const Drawer: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setIsDrawerOpen(false)}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 text-sm font-semibold text-[#66736D] hover:bg-gray-100 rounded-xl transition-colors text-left"
+              onClick={() => navigateTo(() => setIsSettingsOpen(true))}
+              className="w-full flex items-center gap-3.5 px-3 py-2.5 text-sm font-semibold text-[#1E2723] hover:bg-[#E9F7F0] rounded-xl transition-colors text-left"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 text-[#0B8F56]" />
               <span>Settings</span>
             </button>
 
             <button
               type="button"
-              onClick={() => setIsDrawerOpen(false)}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 text-sm font-semibold text-[#66736D] hover:bg-gray-100 rounded-xl transition-colors text-left"
+              id="drawer-help-support-btn"
+              onClick={() => navigateTo(() => setIsHelpOpen(true))}
+              className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-[#1E2723] hover:bg-[#E9F7F0] rounded-xl transition-all text-left group cursor-pointer active:scale-[0.99]"
             >
-              <HelpCircle className="w-4 h-4" />
-              <span>Help & Support</span>
+              <div className="flex items-center gap-3.5">
+                <HelpCircle className="w-4 h-4 text-[#0B8F56] transition-transform group-hover:scale-110" />
+                <span>Help & Support</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#0B8F56] transition-colors" />
             </button>
 
             <button
               type="button"
-              onClick={() => setIsDrawerOpen(false)}
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 text-sm font-semibold text-[#66736D] hover:bg-gray-100 rounded-xl transition-colors text-left"
+              id="drawer-about-us-btn"
+              onClick={() => navigateTo(() => setIsAboutOpen(true))}
+              className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-semibold text-[#1E2723] hover:bg-[#E9F7F0] rounded-xl transition-all text-left group cursor-pointer active:scale-[0.99]"
             >
-              <Info className="w-4 h-4" />
-              <span>About Us</span>
+              <div className="flex items-center gap-3.5">
+                <Info className="w-4 h-4 text-[#0B8F56] transition-transform group-hover:scale-110" />
+                <span>About Us</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#0B8F56] transition-colors" />
             </button>
           </div>
         </div>

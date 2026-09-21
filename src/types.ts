@@ -13,6 +13,7 @@ export interface Product {
   featured: boolean;
   materials?: string[];
   stock?: number;
+  isUserCreated?: boolean;
 }
 
 export interface CategoryInfo {

@@ -71,7 +71,12 @@ export const ArtisanStudioScreen: React.FC = () => {
 
   // Filter products belonging to this artisan or show all for platform management
   const artisanProducts = products.filter(
-    (p) => p.artisan.toLowerCase().includes(user.name.toLowerCase()) || p.artisan.includes('Ramesh') || p.id <= 5
+    (p) =>
+      p.isUserCreated ||
+      (p.artisan && user.name && p.artisan.toLowerCase().includes(user.name.toLowerCase())) ||
+      (user.name && p.artisan && user.name.toLowerCase().includes(p.artisan.toLowerCase())) ||
+      p.artisan.includes('Ramesh') ||
+      p.id <= 5
   );
 
   // Filter orders containing artisan products
@@ -175,7 +180,10 @@ export const ArtisanStudioScreen: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setIsAddProductOpen(true)}
+              onClick={() => {
+                setEditingProduct(null);
+                setIsAddProductOpen(true);
+              }}
               className="px-3 py-1.5 bg-[#0B8F56] hover:bg-[#006B43] text-white text-xs font-bold rounded-lg shadow-xs transition-colors flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -291,7 +299,10 @@ export const ArtisanStudioScreen: React.FC = () => {
               </h3>
               <button
                 type="button"
-                onClick={() => setIsAddProductOpen(true)}
+                onClick={() => {
+                  setEditingProduct(null);
+                  setIsAddProductOpen(true);
+                }}
                 className="text-xs font-bold text-[#0B8F56] hover:underline flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -308,7 +319,10 @@ export const ArtisanStudioScreen: React.FC = () => {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setIsAddProductOpen(true)}
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setIsAddProductOpen(true);
+                  }}
                   className="px-4 py-2 bg-[#0B8F56] text-white text-xs font-bold rounded-xl shadow-xs"
                 >
                   Create Your First Listing
