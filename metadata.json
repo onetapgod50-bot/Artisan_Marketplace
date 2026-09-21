@@ -1,0 +1,8 @@
+{
+  "name": "Artisan Connect",
+  "description": "AI-driven market linkage and smart cataloging marketplace connecting marginalized artisans with buyers for authentic handmade crafts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
