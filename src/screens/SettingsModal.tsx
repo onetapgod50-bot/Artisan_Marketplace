@@ -241,7 +241,7 @@ export const SettingsModal: React.FC = () => {
               <div className="p-4 bg-[#F7F9F8] border border-[#E4E8E6] rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-[#0B8F56] flex items-center justify-center font-bold">
                       <Database className="w-4 h-4" />
                     </div>
                     <div>
@@ -249,30 +249,31 @@ export const SettingsModal: React.FC = () => {
                         Cloud Database (Firebase Firestore)
                       </h4>
                       <p className="text-[11px] text-[#66736D]">
-                        Multi-device sync, real-time orders & cloud authentication
+                        Project: artisan-marketplace-56b94 • Connected & Active
                       </p>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold rounded-full">
-                    Awaiting Permission
+                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-extrabold rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>Connected</span>
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-xl border border-amber-200 text-xs text-[#1E2723] space-y-2">
-                  <div className="flex items-center gap-1.5 text-amber-800 font-bold text-[11px]">
-                    <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600" />
-                    <span>Database Connection Protocol</span>
+                <div className="p-3 bg-white rounded-xl border border-emerald-200 text-xs text-[#1E2723] space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px]">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                    <span>Firebase SDK Live Connection</span>
                   </div>
                   <p className="text-[11px] text-[#66736D] leading-relaxed">
-                    Connecting to an external cloud database provisions Firebase Firestore and requires
-                    your approval. To connect, simply reply to me in the chat:
+                    Firebase Cloud Firestore has been successfully integrated into your application.
+                    All catalog creations, orders, customer reviews, and support inquiries now sync with your Firebase project:
                   </p>
-                  <div className="p-2 bg-gray-50 rounded-lg font-mono text-[11px] text-[#006B43] border border-gray-200 font-bold">
-                    "Connect the database"
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+                    <div><span className="text-gray-400">Project ID:</span> artisan-marketplace-56b94</div>
+                    <div><span className="text-gray-400">Auth Domain:</span> artisan-marketplace-56b94.firebaseapp.com</div>
+                    <div><span className="text-gray-400">Storage:</span> artisan-marketplace-56b94.firebasestorage.app</div>
+                    <div><span className="text-gray-400">Collections:</span> products, orders, reviews, users, support_threads</div>
                   </div>
-                  <p className="text-[10px] text-[#66736D]">
-                    The AI agent will immediately initiate the Firebase setup modal for your approval.
-                  </p>
                 </div>
 
                 <div className="pt-1 flex gap-2">

@@ -19,8 +19,14 @@ import {
   Check,
   User as UserIcon,
   RotateCcw,
+  Database,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import {
+  fetchSupportThreadsFromFirestore,
+  saveSupportThreadToFirestore,
+  checkFirebaseConnection,
+} from '../firebase/services';
 
 export interface EmailMessage {
   id: string;
@@ -97,10 +103,31 @@ export const HelpSupportModal: React.FC = () => {
   // FAQ state
   const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
 
+  // Connection check state
+  const [isDbConnected, setIsDbConnected] = useState<boolean>(true);
+
   // Sync threads to localStorage
   useEffect(() => {
     localStorage.setItem('ac_support_email_threads', JSON.stringify(threads));
   }, [threads]);
+
+  // Sync threads with Firestore on load
+  useEffect(() => {
+    checkFirebaseConnection().then((connected) => {
+      setIsDbConnected(connected);
+    });
+
+    fetchSupportThreadsFromFirestore<EmailThread>().then((remoteThreads) => {
+      if (remoteThreads && remoteThreads.length > 0) {
+        setThreads((prev) => {
+          const map = new Map<string, EmailThread>();
+          prev.forEach((t) => map.set(t.id, t));
+          remoteThreads.forEach((t) => map.set(t.id, t));
+          return Array.from(map.values());
+        });
+      }
+    });
+  }, []);
 
   // Keep email input updated if user context changes
   useEffect(() => {
@@ -158,6 +185,7 @@ export const HelpSupportModal: React.FC = () => {
       };
 
       setThreads((prev) => [newThread, ...prev]);
+      saveSupportThreadToFirestore(newThread);
       setSelectedThreadId(threadId);
       setIsComposing(false);
       setNewSubject('');
@@ -176,15 +204,18 @@ export const HelpSupportModal: React.FC = () => {
           content: `Namaste ${user?.name || 'Artisan Friend'}! We have received your email regarding "${newSubject.trim()}". Our regional guild liaison has registered your ticket. You can reply directly in this thread anytime and we will respond right away.`,
         };
 
+        const updatedThreadWithReply: EmailThread = {
+          ...newThread,
+          status: 'Replied',
+          updatedAt: 'Just now',
+          messages: [...newThread.messages, supportReply],
+        };
+        saveSupportThreadToFirestore(updatedThreadWithReply);
+
         setThreads((prev) =>
           prev.map((t) =>
             t.id === threadId
-              ? {
-                  ...t,
-                  status: 'Replied',
-                  updatedAt: 'Just now',
-                  messages: [...t.messages, supportReply],
-                }
+              ? updatedThreadWithReply
               : t
           )
         );
@@ -212,16 +243,19 @@ export const HelpSupportModal: React.FC = () => {
 
     setTimeout(() => {
       setThreads((prev) =>
-        prev.map((t) =>
-          t.id === selectedThreadId
-            ? {
-                ...t,
-                updatedAt: `Today at ${timeStr}`,
-                status: 'Open',
-                messages: [...t.messages, replyMsg],
-              }
-            : t
-        )
+        prev.map((t) => {
+          if (t.id === selectedThreadId) {
+            const updated: EmailThread = {
+              ...t,
+              updatedAt: `Today at ${timeStr}`,
+              status: 'Open',
+              messages: [...t.messages, replyMsg],
+            };
+            saveSupportThreadToFirestore(updated);
+            return updated;
+          }
+          return t;
+        })
       );
       setReplyText('');
       setIsSendingReply(false);
@@ -240,16 +274,19 @@ export const HelpSupportModal: React.FC = () => {
         };
 
         setThreads((prev) =>
-          prev.map((t) =>
-            t.id === selectedThreadId
-              ? {
-                  ...t,
-                  status: 'Replied',
-                  updatedAt: 'Just now',
-                  messages: [...t.messages, autoSupportAck],
-                }
-              : t
-          )
+          prev.map((t) => {
+            if (t.id === selectedThreadId) {
+              const updatedWithAck: EmailThread = {
+                ...t,
+                status: 'Replied',
+                updatedAt: 'Just now',
+                messages: [...t.messages, autoSupportAck],
+              };
+              saveSupportThreadToFirestore(updatedWithAck);
+              return updatedWithAck;
+            }
+            return t;
+          })
         );
       }, 1600);
     }, 500);
@@ -340,6 +377,7 @@ export const HelpSupportModal: React.FC = () => {
 
             {/* In-App Email Support & Reply */}
             <div
+              id="support-channel-email-card"
               onClick={() => setActiveTab('email')}
               className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all cursor-pointer ${
                 activeTab === 'email'
@@ -351,7 +389,7 @@ export const HelpSupportModal: React.FC = () => {
                 <Mail className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-xs font-bold text-[#1E2723]">In-App Email Support</span>
                   {threads.length > 0 && (
                     <span className="px-1.5 py-0.2 bg-[#0B8F56] text-white text-[9px] font-bold rounded-full">
@@ -359,7 +397,25 @@ export const HelpSupportModal: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#66736D] truncate">Direct Reply in App</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <p className="text-[11px] text-[#66736D] truncate">Direct Reply in App</p>
+                  <span className="text-[10px] text-gray-300">•</span>
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                      isDbConnected
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                    title={
+                      isDbConnected
+                        ? 'Connected to Firebase Firestore Cloud DB (artisan-marketplace-56b94)'
+                        : 'Using Local Storage Offline Fallback'
+                    }
+                  >
+                    <Database className="w-2.5 h-2.5" />
+                    <span>{isDbConnected ? 'DB Connected' : 'Local DB'}</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

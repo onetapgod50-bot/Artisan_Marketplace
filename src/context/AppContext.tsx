@@ -2,6 +2,18 @@ import React, { createContext, useContext, useState, useMemo, useEffect, ReactNo
 import { Product, Order, UserProfile, Review } from '../types';
 import { buildProducts } from '../data/catalog';
 import { initialReviews } from '../data/reviews';
+import {
+  initFirebaseAuth,
+  fetchProductsFromFirestore,
+  saveProductToFirestore,
+  deleteProductFromFirestore,
+  fetchOrdersFromFirestore,
+  saveOrderToFirestore,
+  updateOrderInFirestore,
+  fetchReviewsFromFirestore,
+  saveReviewToFirestore,
+  syncUserProfileToFirestore,
+} from '../firebase/services';
 
 interface AppContextType {
   // Catalog
@@ -214,6 +226,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     ];
   });
 
+  // Initial Firebase synchronization
+  useEffect(() => {
+    initFirebaseAuth();
+
+    // Fetch and merge remote products from Firestore
+    fetchProductsFromFirestore().then((remoteProds) => {
+      if (remoteProds && remoteProds.length > 0) {
+        setProducts((prev) => {
+          const map = new Map<number, Product>();
+          prev.forEach((p) => map.set(p.id, p));
+          remoteProds.forEach((p) => map.set(p.id, p));
+          return Array.from(map.values());
+        });
+      }
+    });
+
+    // Fetch and merge remote orders from Firestore
+    fetchOrdersFromFirestore().then((remoteOrders) => {
+      if (remoteOrders && remoteOrders.length > 0) {
+        setOrders((prev) => {
+          const map = new Map<string, Order>();
+          prev.forEach((o) => map.set(o.id, o));
+          remoteOrders.forEach((o) => map.set(o.id, o));
+          return Array.from(map.values());
+        });
+      }
+    });
+
+    // Fetch and merge remote reviews from Firestore
+    fetchReviewsFromFirestore().then((remoteReviews) => {
+      if (remoteReviews && remoteReviews.length > 0) {
+        setReviews((prev) => {
+          const map = new Map<string, Review>();
+          prev.forEach((r) => map.set(r.id, r));
+          remoteReviews.forEach((r) => map.set(r.id, r));
+          return Array.from(map.values());
+        });
+      }
+    });
+  }, []);
+
   // Save changes to localStorage
   useEffect(() => {
     try {
@@ -243,6 +296,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const addProduct = (newProd: Product) => {
     const item: Product = { ...newProd, isUserCreated: true };
     setProducts((prev) => [item, ...prev]);
+    saveProductToFirestore(item);
     showToast(`"${newProd.name}" published to catalog successfully!`);
   };
 
@@ -257,11 +311,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const updateProduct = (updated: Product) => {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    saveProductToFirestore(updated);
     showToast('Product updated successfully!');
   };
 
   const deleteProduct = (productId: number) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
+    deleteProductFromFirestore(productId);
     showToast('Product removed from catalog');
   };
 
@@ -283,6 +339,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           : o
       )
     );
+    updateOrderInFirestore(orderId, {
+      status,
+      ...(trackingNumber ? { trackingNumber } : {}),
+      ...(courierName ? { courierName } : {}),
+    });
     showToast(`Order #${orderId} marked as ${status}`);
   };
 
@@ -293,6 +354,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       date: 'Today, Just now',
     };
     setReviews((prev) => [newRev, ...prev]);
+    saveReviewToFirestore(newRev);
 
     // Recalculate product rating
     setProducts((prev) =>
@@ -302,7 +364,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           const newRating = Number(
             (((p.rating * p.reviews) + reviewData.rating) / newReviewsCount).toFixed(1)
           );
-          return { ...p, rating: newRating, reviews: newReviewsCount };
+          const updatedProd = { ...p, rating: newRating, reviews: newReviewsCount };
+          saveProductToFirestore(updatedProd);
+          return updatedProd;
         }
         return p;
       })
@@ -417,6 +481,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     setOrders((prev) => [newOrder, ...prev]);
+    saveOrderToFirestore(newOrder);
     setLatestOrderId(orderId);
     clearCart();
     setCheckoutStep('success');
@@ -424,7 +489,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const login = (email = 'john@gmail.com', name = 'John Doe') => {
-    setUser((prev) => ({ ...prev, email, name }));
+    const updatedUser: UserProfile = { ...user, email, name };
+    setUser(updatedUser);
+    syncUserProfileToFirestore(updatedUser);
     setIsLoggedIn(true);
     showToast('Logged in successfully');
   };
@@ -435,7 +502,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const switchRole = (role: 'buyer' | 'artisan') => {
-    setUser((prev) => ({ ...prev, role }));
+    const updatedUser: UserProfile = { ...user, role };
+    setUser(updatedUser);
+    syncUserProfileToFirestore(updatedUser);
     showToast(`Switched to ${role === 'artisan' ? 'Artisan' : 'Buyer'} mode`);
     if (role === 'artisan') {
       setIsArtisanStudioOpen(true);
